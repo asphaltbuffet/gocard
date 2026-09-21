@@ -61,6 +61,15 @@ func TestWithRanksEmptyIsIgnored(t *testing.T) {
 		"an empty rank list falls back to the standard ranks")
 }
 
+func TestWithSuitsEmptyIsIgnored(t *testing.T) {
+	t.Parallel()
+
+	d := gocard.NewDeck(gocard.WithSuits())
+
+	assert.Equal(t, standardDeckSize, d.Len(),
+		"an empty suit list falls back to the standard suits")
+}
+
 func TestWithSuits(t *testing.T) {
 	t.Parallel()
 
