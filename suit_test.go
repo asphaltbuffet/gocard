@@ -40,6 +40,30 @@ func TestSuitSymbol(t *testing.T) {
 	}
 }
 
+func TestSuitString(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		suit gocard.Suit
+		want string
+	}{
+		{"no suit", gocard.NoSuit, "NoSuit"},
+		{"clubs", gocard.Clubs, "Clubs"},
+		{"diamonds", gocard.Diamonds, "Diamonds"},
+		{"hearts", gocard.Hearts, "Hearts"},
+		{"spades", gocard.Spades, "Spades"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			assert.Equal(t, tt.want, tt.suit.String())
+		})
+	}
+}
+
 func TestSuitValid(t *testing.T) {
 	t.Parallel()
 
