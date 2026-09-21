@@ -65,7 +65,16 @@ func TestPlainRendersEveryBorderStyle(t *testing.T) {
 			out := render.Plain{}.Render(l)
 
 			lines := strings.Split(out, "\n")
-			assert.Len(t, lines, 3, "every border style must respect the requested height")
+			require.Len(t, lines, 3, "every border style must respect the requested height")
+
+			// Border glyphs are multi-byte, so a byte-based width calculation
+			// would pass a length check while mis-aligning the card.
+			for i, line := range lines {
+				assert.Len(t, []rune(line), 7,
+					"row %d must be the requested width in runes", i)
+			}
+
+			assert.NotContains(t, out, "\x1b", "the plain renderer never emits styling")
 		})
 	}
 }

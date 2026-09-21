@@ -37,20 +37,19 @@ func (Plain) Render(l gocard.Layout) string {
 		return ""
 	}
 
-	b := borderFor(l.Border)
-
-	if l.Border == gocard.BorderNone {
-		return strings.Join(fit(strings.Split(l.Content, "\n"), l.Width, l.Height), "\n")
-	}
+	lines := strings.Split(l.Content, "\n")
 
 	interiorWidth := l.Width - borderCells
 	interiorHeight := l.Height - borderCells
 
-	if interiorWidth <= 0 || interiorHeight <= 0 {
-		return strings.Join(fit(strings.Split(l.Content, "\n"), l.Width, l.Height), "\n")
+	// A card with no border, or one too small to hold a frame and any content,
+	// is drawn as bare text filling the whole box.
+	if l.Border == gocard.BorderNone || interiorWidth <= 0 || interiorHeight <= 0 {
+		return strings.Join(fit(lines, l.Width, l.Height), "\n")
 	}
 
-	body := fit(strings.Split(l.Content, "\n"), interiorWidth, interiorHeight)
+	b := borderFor(l.Border)
+	body := fit(lines, interiorWidth, interiorHeight)
 
 	rows := make([]string, 0, l.Height)
 	rows = append(rows, b.topLeft+strings.Repeat(b.horizontal, interiorWidth)+b.topRight)
