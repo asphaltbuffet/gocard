@@ -92,12 +92,38 @@ func TestLayoutZeroValue(t *testing.T) {
 func TestCardLayoutContentFitsTheBox(t *testing.T) {
 	t.Parallel()
 
-	l := gocard.Card{Rank: gocard.Ten, Suit: gocard.Diamonds}.Layout()
+	// A border consumes one cell on each side of both dimensions, so content
+	// must fit the interior, not the outer size. Checking against the interior
+	// is what catches a change to the default width or height that the content
+	// builder was not updated for.
+	const borderCells = 2
 
-	lines := strings.Split(l.Content, "\n")
+	tests := []struct {
+		name string
+		card gocard.Card
+	}{
+		{"widest glyph", gocard.Card{Rank: gocard.Ten, Suit: gocard.Diamonds}},
+		{"single-rune rank", gocard.Card{Rank: gocard.Queen, Suit: gocard.Hearts}},
+		{"no suit falls back to the glyph", gocard.Card{Rank: gocard.Joker}},
+		{"zero card", gocard.Card{}},
+	}
 
-	require.LessOrEqual(t, len(lines), l.Height,
-		"content must not be taller than the card claims to be")
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			l := tt.card.Layout()
+			lines := strings.Split(l.Content, "\n")
+
+			require.LessOrEqual(t, len(lines), l.Height-borderCells,
+				"content must fit the box interior, not just the outer height")
+
+			for i, line := range lines {
+				assert.LessOrEqual(t, len([]rune(line)), l.Width-borderCells,
+					"row %d must fit the interior width, measured in runes", i)
+			}
+		})
+	}
 }
 
 func TestBorderStyleString(t *testing.T) {
