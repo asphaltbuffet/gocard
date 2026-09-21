@@ -141,3 +141,40 @@ func TestDealNegativeReportsInsufficientCards(t *testing.T) {
 		})
 	}
 }
+
+func TestDealOversizedReportsInsufficientCards(t *testing.T) {
+	t.Parallel()
+
+	// A runtime value, because the constant expression (1<<62)*4 does not
+	// compile — the compiler catches the overflow that Deal must catch itself.
+	huge := 1 << 62
+
+	tests := []struct {
+		name        string
+		ways        int
+		cardsPerWay int
+	}{
+		{"more ways than cards", standardDeckSize + 1, 1},
+		{"more cards per way than cards", 1, standardDeckSize + 1},
+		// The product wraps to 0, so an unguarded Deal passes DrawN's check and
+		// then panics allocating a slice of 2^62 ways.
+		{"product overflows to zero", huge, 4},
+		// The product wraps to 8, so an unguarded Deal draws 8 cards and *then*
+		// panics — losing them with no error, which is the atomicity failure.
+		{"product overflows to a small positive", 4, 2 + huge},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			d := gocard.NewDeck()
+
+			ways, err := d.Deal(tt.ways, tt.cardsPerWay)
+
+			require.ErrorIs(t, err, gocard.ErrInsufficientCards)
+			assert.Nil(t, ways)
+			assert.Equal(t, standardDeckSize, d.Len(), "a rejected deal must remove nothing")
+		})
+	}
+}

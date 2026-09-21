@@ -22,10 +22,14 @@ func (d *Deck[T]) Deal(ways, cardsPerWay int) ([][]T, error) {
 		return nil, nil
 	}
 
-	// Both arguments are checked here rather than left to DrawN, which cannot
-	// see them: two negatives multiply to a plausible positive, so Deal(-2, -2)
-	// would ask DrawN for 4 cards and succeed.
-	if ways < 0 || cardsPerWay < 0 {
+	// Both arguments are checked here rather than left to DrawN, which sees only
+	// their product and cannot tell a valid request from a wrapped one. Two
+	// negatives multiply to a plausible positive, so Deal(-2, -2) would ask for
+	// 4 cards; two large positives overflow to a plausible small positive, so
+	// Deal(4, 2+(1<<62)) would ask for 8 and succeed before panicking on a
+	// nonsensical allocation. Rejecting anything larger than the deck catches
+	// both, since no deal can legitimately need more cards than the deck holds.
+	if ways < 0 || cardsPerWay < 0 || ways > len(d.cards) || cardsPerWay > len(d.cards) {
 		return nil, fmt.Errorf("dealing %d ways of %d: %w", ways, cardsPerWay, ErrInsufficientCards)
 	}
 
