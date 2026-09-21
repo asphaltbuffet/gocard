@@ -1,0 +1,87 @@
+[tools]
+changie = "latest"
+"aqua:gotestyourself/gotestsum" = "latest"
+"go:golang.org/x/tools/cmd/goimports" = "latest"
+"go:golang.org/x/tools/cmd/stringer" = "latest"
+golangci-lint = "latest"
+
+[tasks.cover]
+description = "go test coverage"
+depends = ["test"]
+sources = ["bin/coverage.out"]
+outputs = ["bin/coverage.html"]
+run = [
+  "go tool cover -html=bin/coverage.out -o bin/coverage.html",
+  "go tool cover -func=bin/coverage.out",
+]
+
+[tasks.dev]
+description = "dev build pipeline"
+depends = ["generate", "lint", "test"]
+
+[tasks.diff]
+description = "git diff"
+hide = true
+run = '''
+#!/usr/bin/env bash
+git diff --exit-code
+RES=$(git status --porcelain)
+if [ -n "$RES" ]; then
+  echo "$RES" && exit 1
+fi
+'''
+
+[tasks.generate]
+description = "auto generate artifacts"
+alias = "gen"
+sources = ["./**/*.go"]
+run = "go generate ./..."
+
+[tasks.lint]
+description = "lint project files"
+depends = ["generate", "lint-verify"]
+wait_for = ["test"]
+sources = ["**/*.go", ".golangci.yml"]
+outputs = ["bin/golangci-lint.html"]
+run = [
+  "mkdir -p bin",
+  "golangci-lint run --output.html.path=bin/golangci-lint.html --output.text.path=stdout",
+]
+
+[tasks.lint-fix]
+description = "fix linting issues in project files"
+depends = ["generate", "lint-verify"]
+wait_for = ["test"]
+run = [
+  "mkdir -p bin",
+  "golangci-lint run --fix --output.html.path=bin/golangci-lint.html --output.text.path=stdout",
+]
+
+[tasks.lint-verify]
+description = "verify linting config"
+hide = true
+sources = [".golangci.yml"]
+run = ["golangci-lint config verify"]
+
+[tasks.mod-tidy]
+description = "go mod tidy"
+alias = "mod"
+sources = ["**/*.go", "**/go.mod", "**/go.sum"]
+outputs = ["**/go.mod", "**/go.sum"]
+run = "go mod tidy"
+
+[tasks.test]
+description = "run test suite"
+depends = ["generate"]
+sources = ["**/*.go", "**/testdata/**"]
+outputs = ["bin/coverage.out"]
+run = [
+  "mkdir -p bin",
+  "gotestsum -- -race -covermode=atomic -coverprofile=bin/coverage.out $(go list ./... | grep -v /mocks)",
+]
+
+[tasks.update-deps]
+description = "update direct dependencies to latest versions"
+alias = "up"
+run = "go get -u"
+depends_post = ["mod-tidy"]

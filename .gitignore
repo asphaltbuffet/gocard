@@ -1,0 +1,13 @@
+# build & test output
+bin/
+*.out
+*.test
+**/mocks/*
+
+# nix
+.direnv/
+result
+result-*
+
+# per-developer agent config (project-scoped settings ARE tracked)
+.claude/settings.local.json
