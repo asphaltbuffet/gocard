@@ -14,6 +14,13 @@ func ExampleCard_String() {
 	// Output: Q♣
 }
 
+func ExampleCard_Layout() {
+	l := gocard.Card{Rank: gocard.Queen, Suit: gocard.Hearts}.Layout()
+
+	fmt.Println(l.Width, l.Height, l.Border, l.Accent)
+	// Output: 7 5 BorderRounded AccentRed
+}
+
 func ExampleDeck_Draw() {
 	d := gocard.NewDeck()
 
