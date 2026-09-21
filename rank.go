@@ -33,12 +33,6 @@ const (
 	Joker
 )
 
-// ordinalKing is the Ace-low ordinal of [King], the highest ranked card
-// that has an ordinal.
-//
-//nolint:unused // documents the maximum ordinal value
-const ordinalKing = 13
-
 // Ordinal returns one conventional numbering of r: Ace is 1 through King is
 // 13.
 //
