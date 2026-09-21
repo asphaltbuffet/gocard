@@ -12,3 +12,15 @@ func ExampleCard_String() {
 	fmt.Println(c)
 	// Output: Q♣
 }
+
+func ExampleDeck_Draw() {
+	d := gocard.NewDeck()
+
+	c, err := d.Draw()
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(c, d.Len())
+	// Output: A♣ 51
+}
