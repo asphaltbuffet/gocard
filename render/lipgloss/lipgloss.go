@@ -88,6 +88,12 @@ func New(opts ...Option) *Renderer {
 
 // Render draws l as a styled box exactly l.Width cells wide and l.Height
 // rows tall. A layout with no width or height renders as the empty string.
+//
+// Content is centred in the box, and trailing blank lines are dropped before
+// centring, so content is positioned by how many non-blank lines it has rather
+// than by where they sit in the string. Output is therefore not byte-comparable
+// with the render package's Plain renderer, which left-aligns and keeps blank
+// lines; both agree on the overall width and height.
 func (r *Renderer) Render(l gocard.Layout) string {
 	if l.Width <= 0 || l.Height <= 0 {
 		return ""
