@@ -85,6 +85,47 @@ func TestRendersEveryAccent(t *testing.T) {
 	}
 }
 
+func TestRendersExactlyTheDeclaredSize(t *testing.T) {
+	t.Parallel()
+
+	// A lipgloss style's Width and Height are minimums: it wraps and grows
+	// rather than truncating. A card family with taller or wordier content than
+	// a standard playing card would otherwise get a box the wrong size, which
+	// breaks any caller joining boxes side by side.
+	const (
+		width  = 7
+		height = 5
+	)
+
+	tests := []struct {
+		name    string
+		border  gocard.BorderStyle
+		content string
+	}{
+		{"too many lines, bordered", gocard.BorderRounded, "a\nb\nc\nd\ne\nf\ng"},
+		{"too many lines, borderless", gocard.BorderNone, "a\nb\nc\nd\ne\nf\ng"},
+		{"unbreakable long word, bordered", gocard.BorderRounded, "unbreakableverylongword"},
+		{"unbreakable long word, borderless", gocard.BorderNone, "unbreakableverylongword"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			l := gocard.Layout{Width: width, Height: height, Border: tt.border, Content: tt.content}
+
+			lines := strings.Split(glrender.New().Render(l), "\n")
+
+			require.Len(t, lines, height, "the box must be exactly as tall as the layout declares")
+
+			for i, line := range lines {
+				assert.Len(t, []rune(line), width,
+					"row %d must be exactly the declared width in runes", i)
+			}
+		})
+	}
+}
+
 func TestZeroLayoutRendersNothing(t *testing.T) {
 	t.Parallel()
 

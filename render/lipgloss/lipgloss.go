@@ -91,17 +91,24 @@ func New(opts ...Option) *Renderer {
 //
 // Content is centred in the box, and trailing blank lines are dropped before
 // centring, so content is positioned by how many non-blank lines it has rather
-// than by where they sit in the string. Output is therefore not byte-comparable
-// with the render package's Plain renderer, which left-aligns and keeps blank
-// lines; both agree on the overall width and height.
+// than by where they sit in the string. Content too tall or too wide for the box
+// is clipped, so the result always matches the size the layout declares. Output
+// is therefore not byte-comparable with the render package's Plain renderer,
+// which left-aligns and keeps blank lines; both agree on width and height.
 func (r *Renderer) Render(l gocard.Layout) string {
 	if l.Width <= 0 || l.Height <= 0 {
 		return ""
 	}
 
+	interiorWidth, interiorHeight := l.Width, l.Height
+	if l.Border != gocard.BorderNone {
+		interiorWidth -= borderCells
+		interiorHeight -= borderCells
+	}
+
 	style := lipgloss.NewStyle().
-		Width(l.Width-borderCells).
-		Height(l.Height-borderCells).
+		Width(interiorWidth).
+		Height(interiorHeight).
 		Align(lipgloss.Center, lipgloss.Center).
 		Foreground(lipgloss.Color(r.colorFor(l.Accent)))
 
@@ -109,11 +116,34 @@ func (r *Renderer) Render(l gocard.Layout) string {
 		style = style.
 			Border(borderFor(l.Border)).
 			BorderForeground(lipgloss.Color(r.theme.Border))
-	} else {
-		style = style.Width(l.Width).Height(l.Height)
 	}
 
-	return style.Render(strings.TrimRight(l.Content, "\n"))
+	return style.Render(clip(strings.TrimRight(l.Content, "\n"), interiorWidth, interiorHeight))
+}
+
+// clip truncates content to at most height lines of at most width runes each.
+//
+// A lipgloss style's Width and Height are minimums: it wraps long lines and
+// grows rather than truncating, which would make the rendered box taller than
+// the layout declared. Clipping first is what keeps the promise, and it must
+// measure runes rather than bytes because suit pips are multi-byte.
+func clip(content string, width, height int) string {
+	if width <= 0 || height <= 0 {
+		return ""
+	}
+
+	lines := strings.Split(content, "\n")
+	if len(lines) > height {
+		lines = lines[:height]
+	}
+
+	for i, line := range lines {
+		if runes := []rune(line); len(runes) > width {
+			lines[i] = string(runes[:width])
+		}
+	}
+
+	return strings.Join(lines, "\n")
 }
 
 // colorFor resolves a semantic accent into a theme colour.
