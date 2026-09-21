@@ -106,7 +106,14 @@ func (c Card) layoutContent() string {
 	lines := make([]string, 0, rows)
 	lines = append(lines, glyph)
 
-	middle := c.Suit.Symbol()
+	// The centre shows a suit pip only when the glyph names a suited card.
+	// String drops the suit for a joker or an absent rank, so presenting one
+	// here would make the card print as one thing and render as another.
+	middle := ""
+	if !c.IsJoker() && c.Rank.Valid() {
+		middle = c.Suit.Symbol()
+	}
+
 	if middle == "" {
 		middle = glyph
 	}
@@ -120,7 +127,14 @@ func (c Card) layoutContent() string {
 }
 
 // accent returns the semantic colour role for the card's suit.
+//
+// A joker and a card with no rank carry no suit colour, matching [Card.String],
+// which drops the suit for both.
 func (c Card) accent() Accent {
+	if c.IsJoker() || !c.Rank.Valid() {
+		return AccentNone
+	}
+
 	switch c.Suit {
 	case Hearts, Diamonds:
 		return AccentRed

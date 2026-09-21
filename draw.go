@@ -35,7 +35,8 @@ func (d *Deck[T]) Draw() (T, error) {
 //
 // DrawN is atomic: if the deck holds fewer than n cards it returns an error
 // matching [ErrInsufficientCards] and removes nothing. Drawing 0 cards is a
-// no-op that returns an empty slice and no error.
+// no-op that returns no cards and no error; the returned slice is empty, which
+// is to say safe to range over and append to, but not guaranteed non-nil.
 func (d *Deck[T]) DrawN(n int) ([]T, error) {
 	if n == 0 {
 		return nil, nil

@@ -90,6 +90,10 @@ func (c Card) IsJoker() bool {
 
 // Valid reports whether c is a card that could appear in a deck: a joker, or
 // a card with both a rank and a suit.
+//
+// A joker is checked by rank alone, so a card with rank [Joker] and a suit
+// reports valid even though a joker conventionally has no suit. Such a card
+// prints and renders as a plain joker, its suit ignored.
 func (c Card) Valid() bool {
 	if c.IsJoker() {
 		return true

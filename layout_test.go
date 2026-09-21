@@ -15,10 +15,17 @@ func TestCardLayoutHasUsableDimensions(t *testing.T) {
 
 	l := gocard.Card{Rank: gocard.Ten, Suit: gocard.Hearts}.Layout()
 
+	// Measured in runes: "10♥" is five bytes but three cells, so a byte-based
+	// comparison would pass even at a width too narrow to hold the glyph.
+	const (
+		widestGlyphCells = 3
+		borderCells      = 2
+	)
+
 	assert.Positive(t, l.Width, "a card needs a width to be drawn")
 	assert.Positive(t, l.Height, "a card needs a height to be drawn")
-	assert.GreaterOrEqual(t, l.Width, len("10♥"),
-		"the widest glyph must fit inside the card")
+	assert.GreaterOrEqual(t, l.Width, widestGlyphCells+borderCells,
+		"the widest glyph must fit inside the card's border")
 }
 
 func TestCardLayoutContentCarriesTheGlyph(t *testing.T) {
@@ -74,6 +81,43 @@ func TestCardLayoutAccentIsSemantic(t *testing.T) {
 			t.Parallel()
 
 			assert.Equal(t, tt.want, tt.card.Layout().Accent)
+		})
+	}
+}
+
+func TestCardLayoutAgreesWithString(t *testing.T) {
+	t.Parallel()
+
+	// String drops the suit for a joker or an absent rank, so the layout must
+	// not show a pip or a suit colour for those cards — otherwise the same card
+	// prints as one thing and renders as another.
+	tests := []struct {
+		name string
+		card gocard.Card
+	}{
+		{"joker with a suit", gocard.Card{Rank: gocard.Joker, Suit: gocard.Hearts}},
+		{"joker without a suit", gocard.Card{Rank: gocard.Joker}},
+		{"suit with no rank", gocard.Card{Suit: gocard.Hearts}},
+		{"zero card", gocard.Card{}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			l := tt.card.Layout()
+
+			assert.Equal(t, gocard.AccentNone, l.Accent,
+				"a card whose glyph drops the suit carries no suit colour")
+			assert.Contains(t, l.Content, tt.card.String(),
+				"the layout must show what String shows")
+
+			// NoSuit's symbol is the empty string, which every string contains,
+			// so only assert absence when there is a pip to be absent.
+			if pip := tt.card.Suit.Symbol(); pip != "" {
+				assert.NotContains(t, l.Content, pip,
+					"the layout must not show a pip the glyph does not")
+			}
 		})
 	}
 }
