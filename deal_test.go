@@ -115,11 +115,29 @@ func TestDealZeroWaysOrCards(t *testing.T) {
 func TestDealNegativeReportsInsufficientCards(t *testing.T) {
 	t.Parallel()
 
-	d := gocard.NewDeck()
+	tests := []struct {
+		name        string
+		ways        int
+		cardsPerWay int
+	}{
+		{"negative ways", -1, 5},
+		{"negative cards per way", 3, -1},
+		// Two negatives multiply to a plausible positive, so this would ask
+		// DrawN for 4 cards and succeed if Deal did not check the signs itself.
+		{"both negative", -2, -2},
+	}
 
-	ways, err := d.Deal(-1, 5)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
-	require.ErrorIs(t, err, gocard.ErrInsufficientCards)
-	assert.Nil(t, ways)
-	assert.Equal(t, standardDeckSize, d.Len())
+			d := gocard.NewDeck()
+
+			ways, err := d.Deal(tt.ways, tt.cardsPerWay)
+
+			require.ErrorIs(t, err, gocard.ErrInsufficientCards)
+			assert.Nil(t, ways)
+			assert.Equal(t, standardDeckSize, d.Len(), "a rejected deal must remove nothing")
+		})
+	}
 }

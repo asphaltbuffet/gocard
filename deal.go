@@ -22,6 +22,9 @@ func (d *Deck[T]) Deal(ways, cardsPerWay int) ([][]T, error) {
 		return nil, nil
 	}
 
+	// Both arguments are checked here rather than left to DrawN, which cannot
+	// see them: two negatives multiply to a plausible positive, so Deal(-2, -2)
+	// would ask DrawN for 4 cards and succeed.
 	if ways < 0 || cardsPerWay < 0 {
 		return nil, fmt.Errorf("dealing %d ways of %d: %w", ways, cardsPerWay, ErrInsufficientCards)
 	}
