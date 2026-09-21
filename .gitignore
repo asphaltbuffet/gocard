@@ -11,3 +11,7 @@ result-*
 
 # per-developer agent config (project-scoped settings ARE tracked)
 .claude/settings.local.json
+
+# agent scratch: implementation plans, task briefs, review packages
+docs/superpowers/
+.superpowers/
