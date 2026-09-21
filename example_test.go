@@ -26,6 +26,19 @@ func ExampleDeck_Draw() {
 	// Output: A♣ 51
 }
 
+func ExampleDeck_Deal() {
+	d := gocard.NewDeck()
+
+	ways, err := d.Deal(4, 5)
+	if err != nil {
+		panic(err)
+	}
+
+	// A way is just a slice of cards — gocard does not know who holds one.
+	fmt.Println(len(ways), len(ways[0]), d.Len())
+	// Output: 4 5 32
+}
+
 func ExampleDeck_Shuffle() {
 	// A seeded source makes the deal reproducible.
 	d := gocard.NewDeck()
