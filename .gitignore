@@ -1,0 +1,11 @@
+gocard/
+gocard
+bin/
+dist/
+*.out
+*.test
+manpages/
+completions/
+release_notes/
+**/mocks/*
+.direnv/
