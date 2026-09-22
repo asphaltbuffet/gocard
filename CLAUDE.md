@@ -21,7 +21,7 @@ mise run cover       # coverage HTML → bin/coverage.html
 mise run mod-tidy    # go mod tidy
 
 # Run a single test package
-gotestsum -- -race ./internal/...
+gotestsum -- -race ./render/...
 
 # Run one test by name
 gotestsum -- -run TestFoo ./...
@@ -44,9 +44,13 @@ Always run `mise run lint` and `mise run test` before committing.
 ## Repository Layout
 
 ```
-gocard.go      # exported API
-doc.go         # package documentation
-internal/      # implementation details; not importable by consumers
+card.go rank.go suit.go       # the Card family
+deck.go option.go draw.go     # decks and the operations on them
+deal.go shuffle.go
+layout.go valuation.go        # presentation description; game-supplied values
+doc.go                        # package documentation
+render/                       # the Renderer contract + a dependency-free Plain
+render/lipgloss/              # colour; the only package with a dependency
 CONTEXT.md     # domain glossary
 docs/adr/      # architecture decision records
 docs/agents/   # agent skill configuration
