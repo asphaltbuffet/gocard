@@ -22,9 +22,10 @@ If any of these files don't exist, **proceed silently**. Don't flag their absenc
 ├── docs/
 │   ├── adr/                   ← architecture decision records
 │   └── agents/                ← this directory (skill configuration)
-├── gocard.go                  ← exported API
 ├── doc.go                     ← package documentation
-└── internal/                  ← implementation details
+├── card.go, deck.go, …        ← the exported API, one file per concern
+├── render/                    ← the Renderer contract and a plain renderer
+└── render/lipgloss/           ← colour rendering
 ```
 
 Note this is a single-module Go library with no `src/` directory — the package
